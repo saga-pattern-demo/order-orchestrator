@@ -1,0 +1,18 @@
+<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 http://maven.apache.org/xsd/settings-1.2.0.xsd">
+    <servers>
+        <server>
+            <id>saga-release</id>
+            <username>jenkins-user</username>
+            <password>password</password>
+        </server>
+    </servers>
+    <mirrors>
+        <mirror>
+            <id>saga-release</id>
+            <mirrorOf>saga-release</mirrorOf>
+            <url>http://13.215.208.3:30434/repository/saga-release/</url>
+        </mirror>
+    </mirrors>
+</settings>

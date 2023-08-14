@@ -1,0 +1,23 @@
+server:
+  port: 8092
+---
+topic:
+  name:
+    order:
+      created: "order-created"
+      updated: "order-updated"
+    stock:
+      out: "reserve-product"
+      in: "product-reserved"
+      cancel: "cancel-product-reservation"
+    payment:
+      out: "process-payment"
+      in: "payment-processed"
+---
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      stock-group-id: "stock"
+      payment-group-id: "payment"
+      order-group-id: "order"
