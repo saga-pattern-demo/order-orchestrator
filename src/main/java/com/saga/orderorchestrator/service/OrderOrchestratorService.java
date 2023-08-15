@@ -17,8 +17,6 @@ import java.util.concurrent.CompletableFuture;
 public class OrderOrchestratorService {
     private final KafkaProducer kafkaProducer;
     private OrchestratorResponseDTO orchestratorResponseDTO;
-    private CompletableFuture<StockResponseDTO> stockResponseFuture;
-    private CompletableFuture<PaymentResponseDTO> paymentResponseFuture;
 
     public OrderOrchestratorService(
             KafkaProducer kafkaProducer) {
@@ -32,30 +30,13 @@ public class OrderOrchestratorService {
     )
     private void emitEvent(OrchestratorResponseDTO responseDTO) {
         this.orchestratorResponseDTO = responseDTO;
-        stockResponseFuture = new CompletableFuture<>();
-        paymentResponseFuture = new CompletableFuture<>();
         kafkaProducer.sendStock(responseDTO);
-        kafkaProducer.sendPayment(responseDTO);
-        processOrder();
     }
 
     @Transactional
-    public void processOrder() {
-        CompletableFuture.allOf(stockResponseFuture, paymentResponseFuture).join();
-
-        StockResponseDTO stockResponseDTO = stockResponseFuture.join();
-        PaymentResponseDTO paymentResponseDTO = paymentResponseFuture.join();
-
-        if (stockResponseDTO != null && stockResponseDTO.getStatus().equals(StockStatus.UNAVAILABLE) ||
-                paymentResponseDTO != null && paymentResponseDTO.getStatus().equals(PaymentStatus.PAYMENT_REJECTED)) {
-            orchestratorResponseDTO.setStatus(OrderStatus.ORDER_CANCELLED);
-            kafkaProducer.sendCancelOrder(orchestratorResponseDTO);
-        } else {
-            orchestratorResponseDTO.setStatus(OrderStatus.ORDER_COMPLETED);
-        }
-
-        kafkaProducer.updateOrder(orchestratorResponseDTO);
-
+    public void processOrder(OrchestratorResponseDTO responseDTO, OrderStatus status) {
+        responseDTO.setStatus(status);
+        kafkaProducer.updateOrder(responseDTO);
     }
 
     @KafkaListener(
@@ -65,7 +46,11 @@ public class OrderOrchestratorService {
     )
     private void getStockMessage(StockResponseDTO stockResponseDTO) {
         log.info(String.valueOf(stockResponseDTO));
-        stockResponseFuture.complete(stockResponseDTO);
+        if (stockResponseDTO.getStatus().equals(StockStatus.AVAILABLE)) {
+            kafkaProducer.sendPayment(this.orchestratorResponseDTO);
+        } else {
+            processOrder(this.orchestratorResponseDTO, OrderStatus.ORDER_CANCELLED);
+        }
     }
 
     @KafkaListener(
@@ -74,7 +59,11 @@ public class OrderOrchestratorService {
             containerFactory = "paymentListenerContainerFactory"
     )
     private void getPaymentMessage(PaymentResponseDTO paymentResponseDTO) {
-        log.info(String.valueOf(paymentResponseDTO));
-        paymentResponseFuture.complete(paymentResponseDTO);
+        if (paymentResponseDTO.getStatus().equals(PaymentStatus.PAYMENT_APPROVED)) {
+            processOrder(this.orchestratorResponseDTO, OrderStatus.ORDER_COMPLETED);
+        } else {
+            kafkaProducer.sendCancelOrder(this.orchestratorResponseDTO);
+            processOrder(this.orchestratorResponseDTO, OrderStatus.ORDER_CANCELLED);
+        }
     }
 }
