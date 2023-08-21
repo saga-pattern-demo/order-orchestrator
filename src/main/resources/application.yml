@@ -21,3 +21,4 @@ spring:
       stock-group-id: "stock"
       payment-group-id: "payment"
       order-group-id: "order"
+      auto-offset-reset: earliest
