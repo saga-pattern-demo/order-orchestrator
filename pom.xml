@@ -48,13 +48,6 @@
 		</dependency>
 	</dependencies>
 
-	<repositories>
-		<repository>
-			<id>saga-release</id>
-			<url>http://13.215.208.3:30434/repository/saga-release/</url>
-		</repository>
-	</repositories>
-
 	<build>
 		<plugins>
 			<plugin>

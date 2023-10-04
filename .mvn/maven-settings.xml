@@ -1,0 +1,28 @@
+<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 http://maven.apache.org/xsd/settings-1.2.0.xsd">
+    <servers>
+        <server>
+            <id>saga-release</id>
+            <username>jenkins-user</username>
+            <password>password</password>
+        </server>
+    </servers>
+    <profiles>
+        <profile>
+            <id>nexus</id>
+            <repositories>
+            <repository>
+                <id>saga-release</id>
+                <name>nexus-repo</name>
+                <url>http://127.0.0.1:10020/repository/saga-release</url>
+            </repository>
+            </repositories>
+        </profile>
+    </profiles>
+    
+    <activeProfiles>
+        <activeProfile>nexus</activeProfile>
+    </activeProfiles>
+    
+</settings>

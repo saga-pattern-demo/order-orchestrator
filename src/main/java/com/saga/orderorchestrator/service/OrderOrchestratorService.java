@@ -1,6 +1,8 @@
 package com.saga.orderorchestrator.service;
 
-import com.saga.common.dto.*;
+import com.saga.common.dto.OrchestratorResponseDTO;
+import com.saga.common.dto.PaymentResponseDTO;
+import com.saga.common.dto.StockResponseDTO;
 import com.saga.common.enums.OrderStatus;
 import com.saga.common.enums.PaymentStatus;
 import com.saga.common.enums.StockStatus;
@@ -9,8 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.concurrent.CompletableFuture;
 
 @Service
 @Slf4j
@@ -45,7 +45,6 @@ public class OrderOrchestratorService {
             containerFactory = "stockListenerContainerFactory"
     )
     private void getStockMessage(StockResponseDTO stockResponseDTO) {
-        log.info(String.valueOf(stockResponseDTO));
         if (stockResponseDTO.getStatus().equals(StockStatus.AVAILABLE)) {
             kafkaProducer.sendPayment(this.orchestratorResponseDTO);
         } else {
